@@ -61,19 +61,7 @@
     #define MODE_LED_BEHAVIOUR          "MODE"
 /*=========================================================================*/
 
-// Create the bluefruit object, either software serial...uncomment these lines
-/*
-SoftwareSerial bluefruitSS = SoftwareSerial(BLUEFRUIT_SWUART_TXD_PIN, BLUEFRUIT_SWUART_RXD_PIN);
-
-Adafruit_BluefruitLE_UART ble(bluefruitSS, BLUEFRUIT_UART_MODE_PIN,
-                      BLUEFRUIT_UART_CTS_PIN, BLUEFRUIT_UART_RTS_PIN);
-*/
-
-/* ...or hardware serial, which does not need the RTS/CTS pins. Uncomment this line */
-// Adafruit_BluefruitLE_UART ble(BLUEFRUIT_HWSERIAL_NAME, BLUEFRUIT_UART_MODE_PIN);
-
-/* ...hardware SPI, using SCK/MOSI/MISO hardware SPI pins and then user selected CS/IRQ/RST */
-//Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_CS, BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_RST);
+// Create the bluefruit object
 
 /* ...software SPI, using SCK/MOSI/MISO user-defined SPI pins and then user selected CS/IRQ/RST */
 Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_SCK, BLUEFRUIT_SPI_MISO,
@@ -95,6 +83,57 @@ void printHex(const uint8_t * data, const uint32_t numBytes);
 // the packet buffer
 extern uint8_t packetbuffer[];
 
+#define MOTOR_0 2
+#define MOTOR_1 10
+
+// The time each vibrator vibrates for. 
+#define WAIT_TIME 2000
+
+// Helper Macro
+#define ARRAY_COUNT(x)  (sizeof(x) / sizeof((x)[0]))
+
+
+// Helper function to vibrate a set of motors. 
+void vibrate_motors(int ledPins[])
+{
+  // Start the motors vibrating.
+  for (int i = 0; i < ARRAY_COUNT(ledPins); ++i)
+  {
+    if (ledPins[i] == 0)
+      continue;
+    
+    // Display a message.
+    Serial.print("Vibrating motor ");
+    Serial.println(i);
+    
+    digitalWrite(i, HIGH);
+  }
+
+  // Keep the motors vibrating.
+  delay(WAIT_TIME);
+
+  // Turn the motors off.
+  for (int i = 0; i < ARRAY_COUNT(ledPins); ++i)
+  {
+    if (ledPins[i] == 0)
+      continue;
+      
+    digitalWrite(i, LOW);
+  }
+
+  delete ledPins;
+}
+
+void setup_motors(void)
+{ 
+  // Set all of the digital IOs to output.
+  pinMode(MOTOR_0, OUTPUT);
+  pinMode(MOTOR_1, OUTPUT);
+
+  // Set all of the motors to off by default.
+  digitalWrite(MOTOR_0, LOW);
+  digitalWrite(MOTOR_1, LOW);
+}
 
 /**************************************************************************/
 /*!
@@ -110,7 +149,6 @@ void setup(void)
   Serial.println(F("Adafruit Bluefruit App Controller Example"));
   Serial.println(F("-----------------------------------------"));
 
-  
 
   /* Initialise the module */
   Serial.print(F("Initialising the Bluefruit LE module: "));
@@ -125,7 +163,8 @@ void setup(void)
   {
     /* Perform a factory reset to make sure everything is in a known state */
     Serial.println(F("Performing a factory reset: "));
-    if ( ! ble.factoryReset() ){
+    if ( ! ble.factoryReset() )
+    {
       error(F("Couldn't factory reset"));
     }
   }
@@ -145,26 +184,20 @@ void setup(void)
   ble.verbose(false);  // debug info is a little annoying after this point!
 
   /* Wait for connection */
-  while (! ble.isConnected()) {
+  while (! ble.isConnected()) 
+  {
       delay(500);
   }
 
   Serial.println(F("******************************"));
-
-//  // LED Activity command is only supported from 0.6.6
-//  if ( ble.isVersionAtLeast(MINIMUM_FIRMWARE_VERSION) )
-//  {
-//    // Change Mode LED Activity
-//    Serial.println(F("Change LED activity to " MODE_LED_BEHAVIOUR));
-//    ble.sendCommandCheckOK("AT+HWModeLED=" MODE_LED_BEHAVIOUR);
-//  }
-
+  
   // Set Bluefruit to DATA mode
   Serial.println( F("Switching to DATA mode!") );
   ble.setMode(BLUEFRUIT_MODE_DATA);
 
   Serial.println(F("******************************"));
 
+  setup_motors();
 }
 
 /**************************************************************************/
@@ -174,103 +207,46 @@ void setup(void)
 /**************************************************************************/
 void loop(void)
 {
-
-  Serial.println("Loop started");
   /* Wait for new data to arrive */
   uint8_t len = readPacket(&ble, BLE_READPACKET_TIMEOUT);
+  // There is no data.
   if (len == 0) 
     return;
 
-  /* Got a packet! */
-  //printHex(packetbuffer, len);
+  /* Got a data packet! */
 
-  // Color
-  if (packetbuffer[1] == 'C') {
-    uint8_t red = packetbuffer[2];
-    uint8_t green = packetbuffer[3];
-    uint8_t blue = packetbuffer[4];
-    Serial.print ("RGB #");
-    if (red < 0x10) Serial.print("0");
-    Serial.print(red, HEX);
-    if (green < 0x10) Serial.print("0");
-    Serial.print(green, HEX);
-    if (blue < 0x10) Serial.print("0");
-    Serial.println(blue, HEX);
-  }
-
-  // Buttons
-  if (packetbuffer[1] == 'B') {
+  // A button was pressed.
+  if (packetbuffer[1] == 'B') 
+  {
     uint8_t buttnum = packetbuffer[2] - '0';
     boolean pressed = packetbuffer[3] - '0';
-    Serial.print ("Button "); Serial.print(buttnum);
-    if (pressed) {
-      Serial.println(" pressed");
-    } else {
-      Serial.println(" released");
+
+    // Only perform the action when the button is released.
+    if (pressed)
+      return;
+      
+    Serial.print ("Button "); 
+    Serial.print(buttnum);
+    Serial.println(" pushed");
+
+    int motorsToVibrate[13] = { 0 };
+    switch (buttnum)
+    {
+      case 1:
+        motorsToVibrate[MOTOR_0] = 1;
+        break;
+      case 2:
+        motorsToVibrate[MOTOR_1] = 1;
+        break;
+      case 3:
+        motorsToVibrate[MOTOR_0] = 1;
+        motorsToVibrate[MOTOR_1] = 1;
+        break;
     }
-  }
 
-  // GPS Location
-  if (packetbuffer[1] == 'L') {
-    float lat, lon, alt;
-    lat = parsefloat(packetbuffer+2);
-    lon = parsefloat(packetbuffer+6);
-    alt = parsefloat(packetbuffer+10);
-    Serial.print("GPS Location\t");
-    Serial.print("Lat: "); Serial.print(lat, 4); // 4 digits of precision!
-    Serial.print('\t');
-    Serial.print("Lon: "); Serial.print(lon, 4); // 4 digits of precision!
-    Serial.print('\t');
-    Serial.print(alt, 4); Serial.println(" meters");
-  }
-
-  // Accelerometer
-  if (packetbuffer[1] == 'A') {
-    float x, y, z;
-    x = parsefloat(packetbuffer+2);
-    y = parsefloat(packetbuffer+6);
-    z = parsefloat(packetbuffer+10);
-    Serial.print("Accel\t");
-    Serial.print(x); Serial.print('\t');
-    Serial.print(y); Serial.print('\t');
-    Serial.print(z); Serial.println();
-  }
-
-  // Magnetometer
-  if (packetbuffer[1] == 'M') {
-    float x, y, z;
-    x = parsefloat(packetbuffer+2);
-    y = parsefloat(packetbuffer+6);
-    z = parsefloat(packetbuffer+10);
-    Serial.print("Mag\t");
-    Serial.print(x); Serial.print('\t');
-    Serial.print(y); Serial.print('\t');
-    Serial.print(z); Serial.println();
-  }
-
-  // Gyroscope
-  if (packetbuffer[1] == 'G') {
-    float x, y, z;
-    x = parsefloat(packetbuffer+2);
-    y = parsefloat(packetbuffer+6);
-    z = parsefloat(packetbuffer+10);
-    Serial.print("Gyro\t");
-    Serial.print(x); Serial.print('\t');
-    Serial.print(y); Serial.print('\t');
-    Serial.print(z); Serial.println();
-  }
-
-  // Quaternions
-  if (packetbuffer[1] == 'Q') {
-    float x, y, z, w;
-    x = parsefloat(packetbuffer+2);
-    y = parsefloat(packetbuffer+6);
-    z = parsefloat(packetbuffer+10);
-    w = parsefloat(packetbuffer+14);
-    Serial.print("Quat\t");
-    Serial.print(x); Serial.print('\t');
-    Serial.print(y); Serial.print('\t');
-    Serial.print(z); Serial.print('\t');
-    Serial.print(w); Serial.println();
+    if (motorsToVibrate) 
+    {
+      vibrate_motors(motorsToVibrate);
+    }
   }
 }
