@@ -224,7 +224,7 @@ void loop(void)
 
       // Turn on the corresponding motors.
       int motorPins[PIN_COUNT] = { 0 };
-      if (dataArray[i] = 1)
+      if (dataArray[i] == 1)
         motorPins[MOTOR_0] = 1;
       else
         motorPins[MOTOR_1] = 1;
