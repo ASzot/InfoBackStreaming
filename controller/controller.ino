@@ -191,7 +191,7 @@ void loop(void)
 
     Serial.println((char)c);
 
-    int dataArray[5] = { -1, -1, -1, -1, -1 };
+    int dataArray[6] = { -1, -1, -1, -1, -1, -1 };
 
     switch (c)
     {
@@ -214,9 +214,260 @@ void loop(void)
         dataArray[2] = 1;
         dataArray[3] = 0;
         break;
+      case 'D':
+      case 'd':
+        dataArray[0] = 1;
+        dataArray[1] = 0;
+        dataArray[2] = 0;
+        break;
+      case 'E':
+      case 'e':
+        dataArray[0] = 0;
+        break;
+      case 'F':
+      case 'f':
+        dataArray[0] = 0;
+        dataArray[1] = 0;
+        dataArray[2] = 1;
+        dataArray[3] = 0;
+        break;
+      case 'G':
+      case 'g':
+        dataArray[0] = 1;
+        dataArray[1] = 1;
+        dataArray[2] = 0;
+        break;
+      case 'H':
+      case 'h':
+        dataArray[0] = 0;
+        dataArray[1] = 0;
+        dataArray[2] = 0;
+        dataArray[3] = 0;
+        break;
+      case 'I':
+      case 'i':
+        dataArray[0] = 0;
+        dataArray[1] = 0;
+      case 'J':
+      case 'j':
+        dataArray[0] = 0;
+        dataArray[1] = 1;
+        dataArray[2] = 1;
+        dataArray[3] = 1;
+        break;
+      case 'K':
+      case 'k':
+        dataArray[0] = 1;
+        dataArray[1] = 0;
+        dataArray[2] = 1;
+        break;
+      case 'L':
+      case 'l':
+        dataArray[0] = 0;
+        dataArray[1] = 1;
+        dataArray[2] = 0;
+        dataArray[3] = 0;
+        break;
+      case 'M':
+      case 'm':
+        dataArray[0] = 1;
+        dataArray[1] = 1;
+        break;
+      case 'N':
+      case 'n':
+        dataArray[0] = 1;
+        dataArray[1] = 0;
+        break;
+      case 'O':
+      case 'o':
+        dataArray[0] = 1;
+        dataArray[1] = 1;
+        dataArray[2] = 1;
+        break;
+      case 'P':
+      case 'p':
+        dataArray[0] = 0;
+        dataArray[1] = 1;
+        dataArray[2] = 1;
+        dataArray[3] = 0;
+        break;
+      case 'Q':
+      case 'q':
+        dataArray[0] = 1;
+        dataArray[1] = 1;
+        dataArray[2] = 0;
+        dataArray[3] = 1;
+        break;
+      case 'R':
+      case 'r':
+        dataArray[0] = 0;
+        dataArray[1] = 1;
+        dataArray[2] = 0;
+        break;
+      case 'S':
+      case 's':
+        dataArray[0] = 0;
+        dataArray[1] = 0;
+        dataArray[2] = 0;
+        break;
+      case 'T':
+      case 't':
+        dataArray[0] = 1;
+        break;
+      case 'U':
+      case 'u':
+        dataArray[0] = 0;
+        dataArray[1] = 0;
+        dataArray[2] = 1;
+        break;
+      case 'V':
+      case 'v':
+        dataArray[0] = 0;
+        dataArray[1] = 0;
+        dataArray[2] = 0;
+        dataArray[3] = 1;
+        break;
+      case 'W':
+      case 'w':
+        dataArray[0] = 0;
+        dataArray[1] = 1;
+        dataArray[2] = 1;
+        break;
+      case 'X':
+      case 'x':
+        dataArray[0] = 1;
+        dataArray[1] = 0;
+        dataArray[2] = 0;
+        dataArray[3] = 1;
+        break;
+      case 'Y':
+      case 'y':
+        dataArray[0] = 1;
+        dataArray[1] = 0;
+        dataArray[2] = 1;
+        dataArray[3] = 1;
+        break;
+      case 'Z':
+      case 'z':
+        dataArray[0] = 1;
+        dataArray[1] = 1;
+        dataArray[2] = 0;
+        dataArray[3] = 0;
+        break;
+      case '1':
+        dataArray[0] = 1;
+        dataArray[1] = 1;
+        dataArray[2] = 1;
+        dataArray[3] = 1;
+        dataArray[4] = 1;
+        break;
+      case '2':
+        dataArray[0] = 0;
+        dataArray[1] = 0;
+        dataArray[2] = 1;
+        dataArray[3] = 1;
+        dataArray[4] = 1;
+        break;
+      case '3':
+        dataArray[0] = 0;
+        dataArray[1] = 0;
+        dataArray[2] = 0;
+        dataArray[3] = 1;
+        dataArray[4] = 1;
+        break;
+      case '4':
+        dataArray[0] = 0;
+        dataArray[1] = 0;
+        dataArray[2] = 0;
+        dataArray[3] = 0;
+        dataArray[4] = 1;
+        break;
+      case '5':
+        dataArray[0] = 0;
+        dataArray[1] = 0;
+        dataArray[2] = 0;
+        dataArray[3] = 0;
+        dataArray[4] = 0;
+        break;
+      case '6':
+        dataArray[0] = 1;
+        dataArray[1] = 0;
+        dataArray[2] = 0;
+        dataArray[3] = 0;
+        dataArray[4] = 0;
+        break;
+      case '7':
+        dataArray[0] = 1;
+        dataArray[1] = 1;
+        dataArray[2] = 0;
+        dataArray[3] = 0;
+        dataArray[4] = 0;
+        break;
+      case '8':
+        dataArray[0] = 1;
+        dataArray[1] = 1;
+        dataArray[2] = 1;
+        dataArray[3] = 0;
+        dataArray[4] = 0;
+        break;
+      case '9':
+        dataArray[0] = 1;
+        dataArray[1] = 1;
+        dataArray[2] = 1;
+        dataArray[3] = 1;
+        dataArray[4] = 0;
+        break;
+      case '.':
+        dataArray[0] = 0;
+        dataArray[1] = 1;
+        dataArray[2] = 0;
+        dataArray[3] = 1;
+        dataArray[4] = 0;
+        dataArray[5] = 1;
+        break;
+      case ',':
+        dataArray[0] = 1;
+        dataArray[1] = 1;
+        dataArray[2] = 0;
+        dataArray[3] = 0;
+        dataArray[4] = 1;
+        dataArray[5] = 1;
+        break;
+      case ':':
+        dataArray[0] = 1;
+        dataArray[1] = 1;
+        dataArray[2] = 1;
+        dataArray[3] = 0;
+        dataArray[4] = 0;
+        dataArray[5] = 0;
+        break;
+      case '?':
+        dataArray[0] = 0;
+        dataArray[1] = 0;
+        dataArray[2] = 1;
+        dataArray[3] = 1;
+        dataArray[4] = 0;
+        dataArray[5] = 0;
+        break;
+      case '\'':
+        dataArray[0] = 0;
+        dataArray[1] = 1;
+        dataArray[2] = 1;
+        dataArray[3] = 1;
+        dataArray[4] = 1;
+        dataArray[5] = 0;
+        break;
+      case '-':
+        dataArray[0] = 1;
+        dataArray[1] = 0;
+        dataArray[2] = 0;
+        dataArray[3] = 0;
+        dataArray[4] = 0;
+        dataArray[5] = 1;
+        break;
     }
 
-    for (int i = 0; i < 5; ++i)
+    for (int i = 0; i < 6; ++i)
     {
       // End of transmitting the character.
       if (dataArray[i] == -1)
