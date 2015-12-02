@@ -188,7 +188,7 @@ void loop(void)
 
     Serial.println((char)c);
 
-    int dataArray[5] = { -1 };
+    int dataArray[5] = { -1, -1, -1, -1, -1 };
 
     switch (c)
     {
