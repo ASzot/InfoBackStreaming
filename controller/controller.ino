@@ -10,59 +10,12 @@
 
 #include "BluefruitConfig.h"
 
-/*=========================================================================
-    APPLICATION SETTINGS
-    FACTORYRESET_ENABLE       Perform a factory reset when running this sketch
-   
-                              Enabling this will put your Bluefruit LE module
-                              in a 'known good' state and clear any config
-                              data set in previous sketches or projects, so
-                              running this at least once is a good idea.
-   
-                              When deploying your project, however, you will
-                              want to disable factory reset by setting this
-                              value to 0.  If you are making changes to your
-                              Bluefruit LE device via AT commands, and those
-                              changes aren't persisting across resets, this
-                              is the reason why.  Factory reset will erase
-                              the non-volatile memory where config data is
-                              stored, setting it back to factory default
-                              values.
-       
-                              Some sketches that require you to bond to a
-                              central device (HID mouse, keyboard, etc.)
-                              won't work at all with this feature enabled
-                              since the factory reset will clear all of the
-                              bonding data stored on the chip, meaning the
-                              central device won't be able to reconnect.
-    MINIMUM_FIRMWARE_VERSION  Minimum firmware version to have some new features
-    MODE_LED_BEHAVIOUR        LED activity, valid options are
-                              "DISABLE" or "MODE" or "BLEUART" or
-                              "HWUART"  or "SPI"  or "MANUAL"
-    -----------------------------------------------------------------------*/
-    #define FACTORYRESET_ENABLE         1
-    #define MINIMUM_FIRMWARE_VERSION    "0.6.6"
-    #define MODE_LED_BEHAVIOUR          "MODE"
-/*=========================================================================*/
-
-// Create the bluefruit object, either software serial...uncomment these lines
-/*
-SoftwareSerial bluefruitSS = SoftwareSerial(BLUEFRUIT_SWUART_TXD_PIN, BLUEFRUIT_SWUART_RXD_PIN);
-Adafruit_BluefruitLE_UART ble(bluefruitSS, BLUEFRUIT_UART_MODE_PIN,
-                      BLUEFRUIT_UART_CTS_PIN, BLUEFRUIT_UART_RTS_PIN);
-*/
-
-/* ...or hardware serial, which does not need the RTS/CTS pins. Uncomment this line */
-// Adafruit_BluefruitLE_UART ble(BLUEFRUIT_HWSERIAL_NAME, BLUEFRUIT_UART_MODE_PIN);
+#define FACTORYRESET_ENABLE         1
+#define MINIMUM_FIRMWARE_VERSION    "0.6.6"
+#define MODE_LED_BEHAVIOUR          "MODE"
 
 /* ...hardware SPI, using SCK/MOSI/MISO hardware SPI pins and then user selected CS/IRQ/RST */
 Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_CS, BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_RST);
-
-/* ...software SPI, using SCK/MOSI/MISO user-defined SPI pins and then user selected CS/IRQ/RST */
-//Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_SCK, BLUEFRUIT_SPI_MISO,
-//                             BLUEFRUIT_SPI_MOSI, BLUEFRUIT_SPI_CS,
-//                             BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_RST);
-
 
 // A small helper
 void error(const __FlashStringHelper*err) {
@@ -72,11 +25,12 @@ void error(const __FlashStringHelper*err) {
 
 #define MOTOR_0 2
 #define MOTOR_1 10
+#define BREAK_MOTOR 11
 
 #define PIN_COUNT 13
 
-// The time each vibrator vibrates for. 
-#define WAIT_TIME 2000
+// The time in milliseconds each vibrator vibrates for. 
+#define WAIT_TIME 1000
 
 // Helper function to vibrate a set of motors. 
 void vibrate_motors(int ledPins[])
@@ -102,11 +56,22 @@ void vibrate_motors(int ledPins[])
   {
     if (ledPins[i] == 0)
       continue;
-      
+
+    Serial.print("Turning off motor ");
+    Serial.println(i);
     digitalWrite(i, LOW);
   }
 
   delete ledPins;
+}
+
+void vibrate_break()
+{
+  digitalWrite(BREAK_MOTOR, HIGH);
+
+  delay(WAIT_TIME);
+
+  digitalWrite(BREAK_MOTOR, LOW);
 }
 
 void setup_motors(void)
@@ -114,10 +79,12 @@ void setup_motors(void)
   // Set all of the digital IOs to output.
   pinMode(MOTOR_0, OUTPUT);
   pinMode(MOTOR_1, OUTPUT);
+  pinMode(BREAK_MOTOR, OUTPUT);
 
   // Set all of the motors to off by default.
   digitalWrite(MOTOR_0, LOW);
   digitalWrite(MOTOR_1, LOW);
+  digitalWrite(BREAK_MOTOR, LOW);
 }
 
 
@@ -188,6 +155,8 @@ void setup(void)
   ble.setMode(BLUEFRUIT_MODE_DATA);
 
   Serial.println(F("******************************"));
+
+  setup_motors();
 }
 
 /**************************************************************************/
@@ -219,11 +188,49 @@ void loop(void)
 
     Serial.print((char)c);
 
-    // Hex output too, helps w/debugging!
-//    Serial.print(" [0x");
-//    if (c <= 0xF) 
-//      Serial.print(F("0"));
-//    Serial.print(c, HEX);
-//    Serial.print("] ");
+    int dataArray[5] = { -1 };
+    int len = -1;
+
+    switch (c)
+    {
+      case 'A':
+      case 'a':
+        dataArray[0] = 0;
+        dataArray[1] = 1;
+        break;
+      case 'B':
+      case 'b':
+        dataArray[0] = 1;
+        dataArray[1] = 0;
+        dataArray[2] = 0;
+        dataArray[3] = 0;
+        break;
+    }
+
+    for (int i = 0; i < 5; ++i)
+    {
+      // End of transmitting the character.
+      if (dataArray[i] == -1)
+        break;
+
+      // Turn on the corresponding motors.
+      int motorPins[PIN_COUNT] = { 0 };
+      if (dataArray[i] = 1)
+        motorPins[MOTOR_0] = 1;
+      else
+        motorPins[MOTOR_1] = 1;
+
+      vibrate_motors(motorPins);
+    }
+
+    //////////////////////////////////
+    // Comment the vibrate_break(); and uncomment the delay(WAIT_TIME); line to pause for WAIT_TIME milliseconds between characters.
+    // Do the opposite to vibrate the break motor located at pin BREAK_MOTOR.
+
+    // vibrate the break motor.
+    vibrate_break();
+
+    // Or just wait.
+    //delay(WAIT_TIME);
   }
 }
