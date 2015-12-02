@@ -30,10 +30,12 @@ void error(const __FlashStringHelper*err) {
 #define PIN_COUNT 13
 
 // The time in milliseconds each vibrator vibrates for. 
-#define WAIT_TIME 1000
+#define WAIT_TIME 700
+
+#define MOTOR_TIME 400
 
 // The delay time between the motor vibrations.
-#define DELAY_TIME 500
+#define DELAY_TIME 200
 
 // Helper function to vibrate a set of motors. 
 void vibrate_motors(int ledPins[])
@@ -52,7 +54,7 @@ void vibrate_motors(int ledPins[])
   }
 
   // Keep the motors vibrating.
-  delay(WAIT_TIME);
+  delay(MOTOR_TIME);
 
   // Turn the motors off.
   for (int i = 0; i < PIN_COUNT; ++i)
