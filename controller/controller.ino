@@ -186,10 +186,9 @@ void loop(void)
   {
     int c = ble.read();
 
-    Serial.print((char)c);
+    Serial.println((char)c);
 
     int dataArray[5] = { -1 };
-    int len = -1;
 
     switch (c)
     {
@@ -205,13 +204,23 @@ void loop(void)
         dataArray[2] = 0;
         dataArray[3] = 0;
         break;
+      case 'C':
+      case 'c':
+        dataArray[0] = 1;
+        dataArray[1] = 0;
+        dataArray[2] = 1;
+        dataArray[3] = 0;
+        break;
     }
 
     for (int i = 0; i < 5; ++i)
     {
       // End of transmitting the character.
       if (dataArray[i] == -1)
+      {
+        Serial.println("End character transmission.");
         break;
+      }
 
       // Turn on the corresponding motors.
       int motorPins[PIN_COUNT] = { 0 };
