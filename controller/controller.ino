@@ -23,49 +23,51 @@ void error(const __FlashStringHelper*err) {
   while (1);
 }
 
+
+/////////////////////////
+// Constant definitions. 
+///////////////////////
+
 #define MOTOR_0 2
-#define MOTOR_1 10
-#define BREAK_MOTOR 11
+#define MOTOR_1 3
+#define MOTOR_2 4
+#define MOTOR_3 5
+#define MOTOR_4 6
+#define MOTOR_5 7
+#define MOTOR_6 8
+#define BREAK_MOTOR 9
 
-#define PIN_COUNT 13
-
-// The time in milliseconds each vibrator vibrates for. 
+// Vibrate time of the delay motor.
 #define WAIT_TIME 700
 
+// Vibrate time of each motor.
 #define MOTOR_TIME 400
 
 // The delay time between the motor vibrations.
 #define DELAY_TIME 200
 
+
+
+
+
 // Helper function to vibrate a set of motors. 
-void vibrate_motors(int ledPins[])
+void vibrate_motor(int vibratePin)
 {
   // Start the motors vibrating.
-  for (int i = 0; i < PIN_COUNT; ++i)
-  {
-    if (ledPins[i] == 0)
-      continue;
-    
-    // Display a message.
-    Serial.print("Vibrating motor ");
-    Serial.println(i);
-    
-    digitalWrite(i, HIGH);
-  }
+  
+  // Display a message.
+  Serial.print("Vibrating motor ");
+  Serial.println(vibratePin);
+  
+  digitalWrite(vibratePin, HIGH);
 
   // Keep the motors vibrating.
   delay(MOTOR_TIME);
 
-  // Turn the motors off.
-  for (int i = 0; i < PIN_COUNT; ++i)
-  {
-    if (ledPins[i] == 0)
-      continue;
-
-    Serial.print("Turning off motor ");
-    Serial.println(i);
-    digitalWrite(i, LOW);
-  }
+  Serial.print("Turning off motor ");
+  Serial.println(vibratePin);
+  
+  digitalWrite(vibratePin, LOW);
 
   delete ledPins;
 }
@@ -82,17 +84,14 @@ void vibrate_break()
 void setup_motors(void)
 { 
   // Set all of the digital IOs to output.
-  pinMode(MOTOR_0, OUTPUT);
-  pinMode(MOTOR_1, OUTPUT);
-  pinMode(BREAK_MOTOR, OUTPUT);
+  int[] motors = [ MOTOR_0, MOTOR_1, MOTOR_2, MOTOR_3, MOTOR_4, MOTOR_5, MOTOR_6, BREAK_MOTOR ];
 
-  // Set all of the motors to off by default.
-  digitalWrite(MOTOR_0, LOW);
-  digitalWrite(MOTOR_1, LOW);
-  digitalWrite(BREAK_MOTOR, LOW);
+  for (int i = 0; i < 8; ++i)
+  {
+    pinMode(motors[i], OUTPUT);
+    digitalWrite(motors[i], LOW);
+  }
 }
-
-
 
 /**************************************************************************/
 /*!
@@ -187,317 +186,257 @@ void loop(void)
   }
 
   // Echo received data
-  while ( ble.available() )
+  while (ble.available())
   {
     int c = ble.read();
 
     Serial.println((char)c);
 
-    int dataArray[6] = { -1, -1, -1, -1, -1, -1 };
+    int[] motorsToVibrate = ConvertCharToMotorSeq(c);
 
-    switch (c)
+    // Turn on the corresponding motors.
+    for (int i = 0; i < 2; ++i) 
     {
-      case 'A':
-      case 'a':
-        dataArray[0] = 0;
-        dataArray[1] = 1;
-        break;
-      case 'B':
-      case 'b':
-        dataArray[0] = 1;
-        dataArray[1] = 0;
-        dataArray[2] = 0;
-        dataArray[3] = 0;
-        break;
-      case 'C':
-      case 'c':
-        dataArray[0] = 1;
-        dataArray[1] = 0;
-        dataArray[2] = 1;
-        dataArray[3] = 0;
-        break;
-      case 'D':
-      case 'd':
-        dataArray[0] = 1;
-        dataArray[1] = 0;
-        dataArray[2] = 0;
-        break;
-      case 'E':
-      case 'e':
-        dataArray[0] = 0;
-        break;
-      case 'F':
-      case 'f':
-        dataArray[0] = 0;
-        dataArray[1] = 0;
-        dataArray[2] = 1;
-        dataArray[3] = 0;
-        break;
-      case 'G':
-      case 'g':
-        dataArray[0] = 1;
-        dataArray[1] = 1;
-        dataArray[2] = 0;
-        break;
-      case 'H':
-      case 'h':
-        dataArray[0] = 0;
-        dataArray[1] = 0;
-        dataArray[2] = 0;
-        dataArray[3] = 0;
-        break;
-      case 'I':
-      case 'i':
-        dataArray[0] = 0;
-        dataArray[1] = 0;
-      case 'J':
-      case 'j':
-        dataArray[0] = 0;
-        dataArray[1] = 1;
-        dataArray[2] = 1;
-        dataArray[3] = 1;
-        break;
-      case 'K':
-      case 'k':
-        dataArray[0] = 1;
-        dataArray[1] = 0;
-        dataArray[2] = 1;
-        break;
-      case 'L':
-      case 'l':
-        dataArray[0] = 0;
-        dataArray[1] = 1;
-        dataArray[2] = 0;
-        dataArray[3] = 0;
-        break;
-      case 'M':
-      case 'm':
-        dataArray[0] = 1;
-        dataArray[1] = 1;
-        break;
-      case 'N':
-      case 'n':
-        dataArray[0] = 1;
-        dataArray[1] = 0;
-        break;
-      case 'O':
-      case 'o':
-        dataArray[0] = 1;
-        dataArray[1] = 1;
-        dataArray[2] = 1;
-        break;
-      case 'P':
-      case 'p':
-        dataArray[0] = 0;
-        dataArray[1] = 1;
-        dataArray[2] = 1;
-        dataArray[3] = 0;
-        break;
-      case 'Q':
-      case 'q':
-        dataArray[0] = 1;
-        dataArray[1] = 1;
-        dataArray[2] = 0;
-        dataArray[3] = 1;
-        break;
-      case 'R':
-      case 'r':
-        dataArray[0] = 0;
-        dataArray[1] = 1;
-        dataArray[2] = 0;
-        break;
-      case 'S':
-      case 's':
-        dataArray[0] = 0;
-        dataArray[1] = 0;
-        dataArray[2] = 0;
-        break;
-      case 'T':
-      case 't':
-        dataArray[0] = 1;
-        break;
-      case 'U':
-      case 'u':
-        dataArray[0] = 0;
-        dataArray[1] = 0;
-        dataArray[2] = 1;
-        break;
-      case 'V':
-      case 'v':
-        dataArray[0] = 0;
-        dataArray[1] = 0;
-        dataArray[2] = 0;
-        dataArray[3] = 1;
-        break;
-      case 'W':
-      case 'w':
-        dataArray[0] = 0;
-        dataArray[1] = 1;
-        dataArray[2] = 1;
-        break;
-      case 'X':
-      case 'x':
-        dataArray[0] = 1;
-        dataArray[1] = 0;
-        dataArray[2] = 0;
-        dataArray[3] = 1;
-        break;
-      case 'Y':
-      case 'y':
-        dataArray[0] = 1;
-        dataArray[1] = 0;
-        dataArray[2] = 1;
-        dataArray[3] = 1;
-        break;
-      case 'Z':
-      case 'z':
-        dataArray[0] = 1;
-        dataArray[1] = 1;
-        dataArray[2] = 0;
-        dataArray[3] = 0;
-        break;
-      case '1':
-        dataArray[0] = 1;
-        dataArray[1] = 1;
-        dataArray[2] = 1;
-        dataArray[3] = 1;
-        dataArray[4] = 1;
-        break;
-      case '2':
-        dataArray[0] = 0;
-        dataArray[1] = 0;
-        dataArray[2] = 1;
-        dataArray[3] = 1;
-        dataArray[4] = 1;
-        break;
-      case '3':
-        dataArray[0] = 0;
-        dataArray[1] = 0;
-        dataArray[2] = 0;
-        dataArray[3] = 1;
-        dataArray[4] = 1;
-        break;
-      case '4':
-        dataArray[0] = 0;
-        dataArray[1] = 0;
-        dataArray[2] = 0;
-        dataArray[3] = 0;
-        dataArray[4] = 1;
-        break;
-      case '5':
-        dataArray[0] = 0;
-        dataArray[1] = 0;
-        dataArray[2] = 0;
-        dataArray[3] = 0;
-        dataArray[4] = 0;
-        break;
-      case '6':
-        dataArray[0] = 1;
-        dataArray[1] = 0;
-        dataArray[2] = 0;
-        dataArray[3] = 0;
-        dataArray[4] = 0;
-        break;
-      case '7':
-        dataArray[0] = 1;
-        dataArray[1] = 1;
-        dataArray[2] = 0;
-        dataArray[3] = 0;
-        dataArray[4] = 0;
-        break;
-      case '8':
-        dataArray[0] = 1;
-        dataArray[1] = 1;
-        dataArray[2] = 1;
-        dataArray[3] = 0;
-        dataArray[4] = 0;
-        break;
-      case '9':
-        dataArray[0] = 1;
-        dataArray[1] = 1;
-        dataArray[2] = 1;
-        dataArray[3] = 1;
-        dataArray[4] = 0;
-        break;
-      case '.':
-        dataArray[0] = 0;
-        dataArray[1] = 1;
-        dataArray[2] = 0;
-        dataArray[3] = 1;
-        dataArray[4] = 0;
-        dataArray[5] = 1;
-        break;
-      case ',':
-        dataArray[0] = 1;
-        dataArray[1] = 1;
-        dataArray[2] = 0;
-        dataArray[3] = 0;
-        dataArray[4] = 1;
-        dataArray[5] = 1;
-        break;
-      case ':':
-        dataArray[0] = 1;
-        dataArray[1] = 1;
-        dataArray[2] = 1;
-        dataArray[3] = 0;
-        dataArray[4] = 0;
-        dataArray[5] = 0;
-        break;
-      case '?':
-        dataArray[0] = 0;
-        dataArray[1] = 0;
-        dataArray[2] = 1;
-        dataArray[3] = 1;
-        dataArray[4] = 0;
-        dataArray[5] = 0;
-        break;
-      case '\'':
-        dataArray[0] = 0;
-        dataArray[1] = 1;
-        dataArray[2] = 1;
-        dataArray[3] = 1;
-        dataArray[4] = 1;
-        dataArray[5] = 0;
-        break;
-      case '-':
-        dataArray[0] = 1;
-        dataArray[1] = 0;
-        dataArray[2] = 0;
-        dataArray[3] = 0;
-        dataArray[4] = 0;
-        dataArray[5] = 1;
-        break;
+      vibrate_motor(motorsToVibrate[i]);
     }
+    
+    delay(DELAY_TIME);
 
-    for (int i = 0; i < 6; ++i)
-    {
-      // End of transmitting the character.
-      if (dataArray[i] == -1)
-      {
-        Serial.println("End character transmission.");
-        break;
-      }
-
-      // Turn on the corresponding motors.
-      int motorPins[PIN_COUNT] = { 0 };
-      if (dataArray[i] == 1)
-        motorPins[MOTOR_0] = 1;
-      else
-        motorPins[MOTOR_1] = 1;
-
-      vibrate_motors(motorPins);
-      
-      delay(DELAY_TIME);
-    }
-
-    //////////////////////////////////
-    // Comment the vibrate_break(); and uncomment the delay(WAIT_TIME); line to pause for WAIT_TIME milliseconds between characters.
-    // Do the opposite to vibrate the break motor located at pin BREAK_MOTOR.
-
-    // vibrate the break motor.
+    // Vibrate the break motor.
     vibrate_break();
-
-    // Or just wait.
-    //delay(WAIT_TIME);
   }
 }
+
+int[] ConvertCharToMotorSeq(char c) 
+{
+  int[] motorSeq = [ -1, -1];
+  switch (c) 
+  {
+    case 'A':
+    case 'a':
+      motorSeq[0] = MOTOR_0;
+      motorSeq[1] = MOTOR_0;
+      break;
+    case 'B':
+    case 'b':
+      motorSeq[0] = MOTOR_0;
+      motorSeq[1] = MOTOR_1;
+      break;
+    case 'C':
+    case 'c':
+      motorSeq[0] = MOTOR_0;
+      motorSeq[1] = MOTOR_2;
+      break;
+    case 'D':
+    case 'd':
+      motorSeq[0] = MOTOR_0;
+      motorSeq[1] = MOTOR_3;
+      break;
+    case 'E':
+    case 'e':
+      motorSeq[0] = MOTOR_0;
+      motorSeq[1] = MOTOR_4;
+      break;
+    case 'F':
+    case 'f':
+      motorSeq[0] = MOTOR_0;
+      motorSeq[1] = MOTOR_5;
+      break;
+    case 'G':
+    case 'g':
+      motorSeq[0] = MOTOR_0;
+      motorSeq[1] = MOTOR_6;
+      break;
+    case 'H':
+    case 'h':
+      motorSeq[0] = MOTOR_1;
+      motorSeq[1] = MOTOR_0;
+      break;
+    case 'I':
+    case 'i':
+      motorSeq[0] = MOTOR_1;
+      motorSeq[1] = MOTOR_1;
+      break;
+    case 'J':
+    case 'j':
+      motorSeq[0] = MOTOR_1;
+      motorSeq[1] = MOTOR_2;
+      break;
+    case 'K':
+    case 'k':
+      motorSeq[0] = MOTOR_1;
+      motorSeq[1] = MOTOR_3;
+      break;
+    case 'L':
+    case 'l':
+      motorSeq[0] = MOTOR_1;
+      motorSeq[1] = MOTOR_4;
+      break;
+    case 'M':
+    case 'm':
+      motorSeq[0] = MOTOR_1;
+      motorSeq[1] = MOTOR_5;
+      break;
+    case 'N':
+    case 'n':
+      motorSeq[0] = MOTOR_1;
+      motorSeq[1] = MOTOR_6;
+      break;
+    case 'O':
+    case 'o':
+      motorSeq[0] = MOTOR_2;
+      motorSeq[1] = MOTOR_0;
+      break;
+    case 'P':
+    case 'p':
+      motorSeq[0] = MOTOR_2;
+      motorSeq[1] = MOTOR_1;
+      break;
+    case 'Q':
+    case 'q':
+      motorSeq[0] = MOTOR_2;
+      motorSeq[1] = MOTOR_2;
+      break;
+    case 'R':
+    case 'r':
+      motorSeq[0] = MOTOR_2;
+      motorSeq[1] = MOTOR_3;
+      break;
+    case 'S':
+    case 's':
+      motorSeq[0] = MOTOR_2;
+      motorSeq[1] = MOTOR_4;
+      break;
+    case 'T':
+    case 't':
+      motorSeq[0] = MOTOR_2;
+      motorSeq[1] = MOTOR_5;
+      break;
+    case 'U':
+    case 'u':
+      motorSeq[0] = MOTOR_2;
+      motorSeq[1] = MOTOR_6;
+      break;
+    case 'V':
+    case 'v':
+      motorSeq[0] = MOTOR_3;
+      motorSeq[1] = MOTOR_0;
+      break;
+    case 'W':
+    case 'w':
+      motorSeq[0] = MOTOR_3;
+      motorSeq[1] = MOTOR_1;
+      break;
+    case 'X':
+    case 'x':
+      motorSeq[0] = MOTOR_3;
+      motorSeq[1] = MOTOR_2;
+      break;
+    case 'Y':
+    case 'y':
+      motorSeq[0] = MOTOR_3;
+      motorSeq[1] = MOTOR_3;
+      break;
+    case 'Z':
+    case 'z':
+      motorSeq[0] = MOTOR_3;
+      motorSeq[1] = MOTOR_4;
+      break;
+    case '$':
+      motorSeq[0] = MOTOR_3;
+      motorSeq[1] = MOTOR_5;
+      break;
+    case '#':
+      motorSeq[0] = MOTOR_3;
+      motorSeq[1] = MOTOR_6;
+      break;
+    case '.':
+      motorSeq[0] = MOTOR_4;
+      motorSeq[1] = MOTOR_0;
+      break;
+    case ',':
+      motorSeq[0] = MOTOR_4;
+      motorSeq[1] = MOTOR_1;
+      break;
+    case '!':
+      motorSeq[0] = MOTOR_4;
+      motorSeq[1] = MOTOR_2;
+      break;
+    case '*':
+      motorSeq[0] = MOTOR_4;
+      motorSeq[1] = MOTOR_3;
+      break;
+    case '+':
+      motorSeq[0] = MOTOR_4;
+      motorSeq[1] = MOTOR_4;
+      break;
+    case '-':
+      motorSeq[0] = MOTOR_4;
+      motorSeq[1] = MOTOR_5;
+      break;
+    case '/':
+      motorSeq[0] = MOTOR_4;
+      motorSeq[1] = MOTOR_6;
+      break;
+    case '1':
+      motorSeq[0] = MOTOR_5;
+      motorSeq[1] = MOTOR_0;
+      break;
+    case '2':
+      motorSeq[0] = MOTOR_5;
+      motorSeq[1] = MOTOR_1;
+      break;
+    case '3':
+      motorSeq[0] = MOTOR_5;
+      motorSeq[1] = MOTOR_2;
+      break;
+    case '4':
+      motorSeq[0] = MOTOR_5;
+      motorSeq[1] = MOTOR_3;
+      break;
+    case '5':
+      motorSeq[0] = MOTOR_5;
+      motorSeq[1] = MOTOR_4;
+      break;
+    case '6':
+      motorSeq[0] = MOTOR_5;
+      motorSeq[1] = MOTOR_5;
+      break;
+    case '7':
+      motorSeq[0] = MOTOR_5;
+      motorSeq[1] = MOTOR_6;
+      break;
+    case '8':
+      motorSeq[0] = MOTOR_6;
+      motorSeq[1] = MOTOR_0;
+      break;
+    case '9':
+      motorSeq[0] = MOTOR_6;
+      motorSeq[1] = MOTOR_1;
+      break;
+    case '0':
+      motorSeq[0] = MOTOR_6;
+      motorSeq[1] = MOTOR_2;
+      break;
+    case '(':
+      motorSeq[0] = MOTOR_6;
+      motorSeq[1] = MOTOR_3;
+      break;
+    case ')':
+      motorSeq[0] = MOTOR_6;
+      motorSeq[1] = MOTOR_4;
+      break;
+    case '\"':
+      motorSeq[0] = MOTOR_6;
+      motorSeq[1] = MOTOR_5;
+      break;
+    case ' ':
+      motorSeq[0] = MOTOR_6;
+      motorSeq[1] = MOTOR_6;
+      break;
+  }
+
+  return motorSeq;
+}
+
+
